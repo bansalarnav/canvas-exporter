@@ -8,6 +8,7 @@
 <svelte:head>
   <link rel="icon" href={favicon} />
 </svelte:head>
+
 <div class="w-screen flex flex-col items-center">
   {@render children?.()}
 </div>
