@@ -1,11 +1,29 @@
 <script lang="ts">
+  import { fly } from "svelte/transition";
+  import { quintOut } from "svelte/easing";
   import Header from "./Header.svelte";
   import Footer from "./Footer.svelte";
   import InputForm from "./InputForm.svelte";
+  import Assignments from "./Assignments.svelte";
 
-  // my link: https://canvas.illinois.edu/feeds/calendars/user_RB0ENimJA7zwpPennAAWaa4B7IFkYNcUB11SeLT6.ics
-  function next(icsText: string) {
-    console.log(icsText);
+  let currentStep: number = $state(1);
+  let previousStep: number = $state(1);
+  let icsText: string = $state("");
+  let containerHeight: number = $state(422);
+
+  function next(inp: string) {
+    icsText = inp;
+    previousStep = currentStep;
+    currentStep = 2;
+  }
+
+  function back() {
+    previousStep = currentStep;
+    currentStep = 1;
+  }
+
+  function updateHeight(node: HTMLElement) {
+    containerHeight = node.offsetHeight;
   }
 </script>
 
@@ -26,8 +44,32 @@
       </p>
     </div>
 
-    <div class="rounded-lg border border-border bg-card p-6 sm:p-8">
-      <InputForm {next} />
+    <div
+      class="rounded-lg border border-border bg-card p-6 sm:p-8 overflow-hidden relative transition-all duration-300"
+      style="min-height: {containerHeight}px"
+    >
+      {#key currentStep}
+        <div
+          class="w-full absolute top-0 left-0 p-6 sm:p-8"
+          use:updateHeight
+          in:fly={{
+            x: currentStep > previousStep ? "100%" : "-100%",
+            duration: 300,
+            easing: quintOut,
+          }}
+          out:fly={{
+            x: currentStep > previousStep ? "-100%" : "100%",
+            duration: 300,
+            easing: quintOut,
+          }}
+        >
+          {#if currentStep === 1}
+            <InputForm {next} />
+          {:else if currentStep === 2}
+            <Assignments {icsText} {back} />
+          {/if}
+        </div>
+      {/key}
     </div>
 
     <p class="text-center text-xs text-muted-foreground mt-[-10px]">

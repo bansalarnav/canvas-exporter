@@ -11,7 +11,9 @@
 
   const { next }: Props = $props();
 
-  let link = $state("");
+  let link = $state(
+    "https://canvas.illinois.edu/feeds/calendars/user_RB0ENimJA7zwpPennAAWaa4B7IFkYNcUB11SeLT6.ics",
+  );
   let loading = $state(false);
   let error = $state("");
   let files: FileList | undefined = $state();
@@ -45,7 +47,7 @@
           loading = false;
           return;
         }
-        icsText = await res.text();
+        icsText = (await res.json()).data;
       }
 
       next(icsText);
@@ -79,11 +81,11 @@
     <label for="file-upload">
       <p class="pb-2 text-muted-foreground">Upload a .ics file</p>
       <div class="relative">
-        <Input
+        <input
           id="file-upload"
           type="file"
           accept=".ics"
-          bind:value={files}
+          bind:files
           class="hidden"
         />
         <label
@@ -94,7 +96,11 @@
             <Upload class="h-8 w-8 text-muted-foreground" />
             <div class="text-sm">
               {#if files && files[0]}
-                <span class="font-medium text-foreground">{files[0].name}</span>
+                <span class="font-medium text-foreground text-ellipsis"
+                  >{files[0].name.slice(0, 20)}{files[0].name.length >= 20
+                    ? "..."
+                    : ""}</span
+                >
               {:else}
                 <span class="font-medium text-foreground">Click to upload</span>
                 <span class="text-muted-foreground"> or drag and drop</span>
