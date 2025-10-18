@@ -8,4 +8,11 @@
   let { value = $bindable(), class: className, ...rest }: InputProps = $props();
 </script>
 
-<input bind:value class={["border border-gray-300 p-2", className]} {...rest} />
+<input
+  bind:value
+  class={[
+    "border-[2px] border-[#E4E7EB] px-[12px] py-[10px] bg-[#F5F7FA] rounded-md w-full",
+    className,
+  ]}
+  {...rest}
+/>
