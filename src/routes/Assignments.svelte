@@ -2,6 +2,7 @@
   export type Props = {
     icsText: string;
     back: () => void;
+    next: (inp: Record<string, Event[]>) => void;
   };
 
   export type Event = {
@@ -18,12 +19,10 @@
 
 <script lang="ts">
   import Button from "$lib/components/Button.svelte";
-
   import Checkbox from "$lib/components/Checkbox.svelte";
-
   import ICAL from "ical.js";
 
-  const { icsText, back } = $props();
+  const { icsText, back, next }: Props = $props();
   let error = $state();
 
   function convertCanvasUrl(inputUrl: string) {
@@ -105,7 +104,6 @@
 
       return processedEvents;
     } catch (e) {
-      error = "Failed to parse .ics file.";
       return {};
     }
   }
@@ -113,6 +111,12 @@
   const asmts: Record<string, Event[]> = $derived.by(() =>
     processIcsText(icsText),
   );
+
+  $effect(() => {
+    if (Object.keys(asmts).length === 0) {
+      error = "No assignments found in the .ics file.";
+    }
+  });
 
   const initialSelectedCourses: Record<string, boolean> = {};
   for (const course of Object.keys(asmts)) {
@@ -164,7 +168,13 @@
       <div class="flex justify-end">
         <Button
           onclick={() => {
-            console.log($state.snapshot(selectedCourses));
+            const filteredAsmts: Record<string, Event[]> = {};
+            for (const [course, events] of Object.entries(asmts)) {
+              if (selectedCourses[course]) {
+                filteredAsmts[course] = events;
+              }
+            }
+            next(filteredAsmts);
           }}
           class="text-[15px]  mt-4">Continue --></Button
         >

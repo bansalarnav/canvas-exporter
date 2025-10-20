@@ -4,17 +4,25 @@
   import Header from "./Header.svelte";
   import Footer from "./Footer.svelte";
   import InputForm from "./InputForm.svelte";
-  import Assignments from "./Assignments.svelte";
+  import Assignments, { type Event } from "./Assignments.svelte";
+  import NotionMain from "./NotionMain.svelte";
 
   let currentStep: number = $state(1);
   let previousStep: number = $state(1);
   let icsText: string = $state("");
   let containerHeight: number = $state(422);
+  let selectedAssignments: Record<string, Event[]> = $state({});
 
-  function next(inp: string) {
+  function finishIcsImport(inp: string) {
     icsText = inp;
     previousStep = currentStep;
     currentStep = 2;
+  }
+
+  function finishAssignmentSelect(inp: Record<string, Event[]>) {
+    selectedAssignments = inp;
+    previousStep = currentStep;
+    currentStep = 3;
   }
 
   function back() {
@@ -24,6 +32,18 @@
 
   function updateHeight(node: HTMLElement) {
     containerHeight = node.offsetHeight;
+
+    const resizeObserver = new ResizeObserver(() => {
+      containerHeight = node.offsetHeight;
+    });
+
+    resizeObserver.observe(node);
+
+    return {
+      destroy() {
+        resizeObserver.disconnect();
+      },
+    };
   }
 </script>
 
@@ -64,9 +84,11 @@
           }}
         >
           {#if currentStep === 1}
-            <InputForm {next} />
+            <InputForm next={finishIcsImport} />
           {:else if currentStep === 2}
-            <Assignments {icsText} {back} />
+            <Assignments {icsText} {back} next={finishAssignmentSelect} />
+          {:else if currentStep === 3}
+            <NotionMain {selectedAssignments} />
           {/if}
         </div>
       {/key}
