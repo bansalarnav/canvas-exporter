@@ -49,7 +49,9 @@
         hasMore = false;
       }
 
-      existingAssignments.push(...res.results);
+      if (res.results?.length) {
+        existingAssignments.push(...res.results);
+      }
     }
 
     for (const course of Object.keys(selectedAssignments)) {
@@ -133,12 +135,12 @@
   </p>
   <div class="flex justify-between mt-[12px] mb-[4px]">
     <span>Exporting...</span>
-    <span>{(exported / total) * 100}%</span>
+    <span>{Math.round((exported / total) * 100)}%</span>
   </div>
   <Progress.Root
     value={exported}
     max={total}
-    class="bg-dark-10 shadow-mini-inset relative h-[15px] w-full overflow-hidden rounded-full"
+    class="bg-[#00000010] shadow-mini-inset relative h-[15px] w-full overflow-hidden rounded-full"
   >
     <div
       class="bg-foreground shadow-mini-inset h-full w-full flex-1 rounded-full transition-all duration-1000 ease-in-out"

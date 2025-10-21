@@ -97,7 +97,8 @@
         ],
       });
 
-      next(result.id);
+      // @ts-ignore
+      next(result.data_sources[0].id);
     } else {
       const db = databases.find((db) => db.id === selected);
       const properties = $state.snapshot(db.properties);
