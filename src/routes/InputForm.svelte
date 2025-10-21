@@ -11,9 +11,10 @@
 
   const { next }: Props = $props();
 
-  let link = $state(
-    "https://canvas.illinois.edu/feeds/calendars/user_RB0ENimJA7zwpPennAAWaa4B7IFkYNcUB11SeLT6.ics",
-  );
+  // let link = $state(
+  //   "https://canvas.illinois.edu/feeds/calendars/user_RB0ENimJA7zwpPennAAWaa4B7IFkYNcUB11SeLT6.ics",
+  // );
+  let link = $state("");
   let loading = $state(false);
   let error = $state("");
   let files: FileList | undefined = $state();

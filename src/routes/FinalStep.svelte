@@ -8,6 +8,7 @@
 </script>
 
 <script lang="ts">
+  import { Progress } from "bits-ui";
   import { onMount } from "svelte";
   import { Client } from "@notionhq/client";
   import { page } from "$app/state";
@@ -64,7 +65,7 @@
           continue;
         }
 
-        const result = await notion.pages.create({
+        await notion.pages.create({
           parent: {
             data_source_id: selectedDatasourceId,
           },
@@ -130,8 +131,23 @@
     Exporting {total}
     {" "} assignments
   </p>
+  <div class="flex justify-between mt-[12px] mb-[4px]">
+    <span>Exporting...</span>
+    <span>{(exported / total) * 100}%</span>
+  </div>
+  <Progress.Root
+    value={exported}
+    max={total}
+    class="bg-dark-10 shadow-mini-inset relative h-[15px] w-full overflow-hidden rounded-full"
+  >
+    <div
+      class="bg-foreground shadow-mini-inset h-full w-full flex-1 rounded-full transition-all duration-1000 ease-in-out"
+      style={`transform: translateX(-${100 - (100 * (exported ?? 0)) / total}%)`}
+    ></div>
+  </Progress.Root>
   <p class="mt-[12px]">
-    Processing... This may take a while. Please do not close the tab
-    <span>{exported} / {total}</span>
+    {exported == total
+      ? "Finished!"
+      : "This may take a while. Please do not close the tab"}
   </p>
 </div>
