@@ -17,6 +17,7 @@
   let loading = $state(true);
   let error = $state("");
   let authorised = $state(false);
+  let workspaceId = $state<string | null>(null);
 
   function openNotionAuthWindow() {
     authorising = true;
@@ -75,6 +76,10 @@
     const data = await res.json();
 
     authorised = data.success;
+    if (data.success) {
+      workspaceId = data.workspaceId;
+    }
+
     loading = false;
   }
 
@@ -96,11 +101,11 @@
     )}{" "} assignments
   </p>
   {#if loading}
-    <div class="flex items-center justify-center h-full">
+    <div class="flex items-center justify-center h-full mt-[16px]">
       <Loader color="#000000" size={40} />
     </div>
   {:else if authorised}
-    <NotionSelectDB />
+    <NotionSelectDB {workspaceId} />
   {:else}
     <Button
       onclick={openNotionAuthWindow}

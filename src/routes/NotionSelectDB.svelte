@@ -1,34 +1,53 @@
 <script lang="ts" module>
-  export type Props = {};
+  export type Props = {
+    workspaceId: string;
+  };
 </script>
 
 <script lang="ts">
+  import Loader from "$lib/components/Loader.svelte";
   import { Client } from "@notionhq/client";
+  import { Label, RadioGroup } from "bits-ui";
   import { page } from "$app/state";
   import { onMount } from "svelte";
+  import Button from "$lib/components/Button.svelte";
 
-  let {}: Props = $props();
+  let { workspaceId }: Props = $props();
 
   let loading = $state(false);
+  let error = $state<string | null>(null);
+
+  let databases = $state<any[]>([]);
+  let selected = $state<string | undefined>("");
+  let submitting = $state(false);
+
+  const notion = new Client({
+    baseUrl: `${page.url.origin}/notion`,
+  });
 
   onMount(() => {
     async function fetchData() {
       loading = true;
-      const notion = new Client({
-        baseUrl: `${page.url.origin}/notion`,
-      });
-
       try {
-        const response = await notion.search({
+        const { results } = await notion.search({
           filter: {
             value: "data_source",
             property: "object",
           },
         });
 
-        console.log("Notion Databases:", response);
+        const dbs = [];
+        for (const result of results) {
+          if (result.object === "data_source") {
+            // @ts-ignore
+            const title = result.title[0]?.plain_text || "Untitled";
+            dbs.push({ id: result.id, title, properties: result.properties });
+          }
+        }
+
+        databases = dbs;
       } catch (error) {
-        console.error("Error fetching Notion databases:", error);
+        error = "An error occured while fetching data from Notion.";
       } finally {
         loading = false;
       }
@@ -36,6 +55,72 @@
 
     fetchData();
   });
+
+  function handleSubmit(e: Event) {
+    e.preventDefault();
+    submitting = true;
+
+    if (selected == "new") {
+    } else {
+      const db = databases.find((db) => db.id === selected);
+      const properties = $state.snapshot(db.properties);
+      console.log(properties);
+    }
+
+    submitting = false;
+  }
 </script>
 
-<div>Hello world!</div>
+<div>
+  <div class="mt-[12px]">
+    {#if loading}
+      <div class="flex items-center justify-center h-full mt-[16px]">
+        <Loader color="#000000" size={40} />
+      </div>
+    {:else}
+      <p class="text-[#767676]">Select a database to export to</p>
+      <form onsubmit={handleSubmit}>
+        <RadioGroup.Root
+          class="flex flex-col text-sm font-medium mt-[8px]"
+          bind:value={selected}
+        >
+          {#each databases as db}
+            <Label.Root
+              for={db.id}
+              class="text-foreground group my-[5px] flex select-none items-center transition-all  py-2 px-3 rounded-md cursor-pointer hover:bg-[#00000007]"
+            >
+              <RadioGroup.Item
+                id={db.id}
+                value={db.id}
+                class="border-border-input bg-background hover:border-dark-40 data-[state=checked]:border-foreground data-[state=checked]:border-4 size-4 shrink-0 cursor-default rounded-full border transition-all duration-100 ease-in-out"
+              />
+              <p class="ml-[12px] font-[400] text-[16px]">{db.title}</p>
+            </Label.Root>
+          {/each}
+          <div class="flex items-center">
+            <div class="h-[2px] w-full bg-[#00000008]"></div>
+            <p class="px-4 text-[#00000030]">or</p>
+            <div class="h-[2px] w-full bg-[#00000008]"></div>
+          </div>
+          <Label.Root
+            for="new"
+            class="text-foreground group my-[5px] flex select-none items-center transition-all  py-2 px-3 rounded-md cursor-pointer hover:bg-[#00000005] data-[state=checked]:bg-[#00000008]"
+          >
+            <RadioGroup.Item
+              id="new"
+              value="new"
+              class="border-border-input bg-background hover:border-dark-40 data-[state=checked]:border-foreground data-[state=checked]:border-4 size-4 shrink-0 cursor-default rounded-full border transition-all duration-100 ease-in-out"
+            />
+            <p class="ml-[12px] font-[400] text-[16px]">Create new database</p>
+          </Label.Root>
+        </RadioGroup.Root>
+        <p>{error}</p>
+        <div class="flex justify-end">
+          <Button type="submit" loading={submitting} class="text-[15px] mt-4"
+            >Continue --></Button
+          >
+        </div>
+      </form>
+    {/if}
+  </div>
+</div>

@@ -10,10 +10,11 @@ export const GET: RequestHandler = async ({ cookies }) => {
       throw new Error("No cookie found");
     }
 
-    const _payload = jwt.verify(cookie || "", env.JWT_KEY);
+    const payload = jwt.verify(cookie || "", env.JWT_KEY);
 
     return json({
       success: true,
+      workspaceId: (payload as any).workspaceId,
     });
   } catch (e) {
     return json({

@@ -39,6 +39,7 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
     accessToken: res.access_token,
     refreshToken: res.refresh_token,
     botId: res.bot_id,
+    workspaceId: res.workspace_id,
   };
 
   const cookie = jwt.sign(payload, env.JWT_KEY);

@@ -95,7 +95,7 @@
     </div>
 
     <p class="text-center text-xs text-muted-foreground mt-[-10px]">
-      All data is processed directly in your browser and is never sent to any
+      All data is processed directly in your browser and is never stored in any
       server.
     </p>
   </div>
