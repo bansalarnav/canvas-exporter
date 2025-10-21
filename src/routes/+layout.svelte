@@ -7,6 +7,7 @@
 
 <svelte:head>
   <link rel="icon" href={favicon} />
+  <title>Canvas Exporter</title>
 </svelte:head>
 
 <div class="w-screen flex flex-col min-h-screen">

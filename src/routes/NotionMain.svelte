@@ -6,12 +6,13 @@
 
   export type Props = {
     selectedAssignments: Record<string, CalendarEvent[]>;
+    next: (dataSourceId: string) => void;
   };
 </script>
 
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
-  let { selectedAssignments }: Props = $props();
+  let { selectedAssignments, next }: Props = $props();
 
   let authorising = $state(false);
   let loading = $state(true);
@@ -105,7 +106,7 @@
       <Loader color="#000000" size={40} />
     </div>
   {:else if authorised}
-    <NotionSelectDB {workspaceId} />
+    <NotionSelectDB {next} />
   {:else}
     <Button
       onclick={openNotionAuthWindow}

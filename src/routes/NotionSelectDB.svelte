@@ -1,6 +1,6 @@
 <script lang="ts" module>
   export type Props = {
-    workspaceId: string;
+    next: (dataSourceId: string) => void;
   };
 </script>
 
@@ -12,7 +12,7 @@
   import { onMount } from "svelte";
   import Button from "$lib/components/Button.svelte";
 
-  let { workspaceId }: Props = $props();
+  const { next }: Props = $props();
 
   let loading = $state(false);
   let error = $state<string | null>(null);
@@ -56,15 +56,106 @@
     fetchData();
   });
 
-  function handleSubmit(e: Event) {
+  async function handleSubmit(e: Event) {
     e.preventDefault();
     submitting = true;
+    if (!selected) {
+      submitting = false;
+      return;
+    }
+
+    const cols = [
+      { name: ["name", "homework"], type: "title" },
+      { name: ["description", "details"], type: "rich_text" },
+      { name: ["due", "due date"], type: "date" },
+      { name: ["course", "class"], type: "rich_text" },
+      { name: ["url", "link"], type: "url" },
+      { name: ["uid"], type: "rich_text" },
+    ];
 
     if (selected == "new") {
+      const result = await notion.databases.create({
+        parent: {
+          type: "workspace",
+          workspace: true,
+        },
+        initial_data_source: {
+          properties: cols.reduce((acc, col) => {
+            acc[col.name[0]] = {
+              [col.type]: {},
+            };
+            return acc;
+          }, {} as any),
+        },
+        title: [
+          {
+            type: "text",
+            text: {
+              content: "Canvas Assignment Export",
+            },
+          },
+        ],
+      });
+
+      next(result.id);
     } else {
       const db = databases.find((db) => db.id === selected);
       const properties = $state.snapshot(db.properties);
-      console.log(properties);
+
+      const missing = [];
+
+      for (const col of cols) {
+        let found = false;
+
+        for (const name of col.name) {
+          for (const prop in properties) {
+            if (
+              properties[prop].name
+                .toLowerCase()
+                .includes(name.toLowerCase()) &&
+              properties[prop].type === col.type
+            ) {
+              found = true;
+              break;
+            }
+          }
+          if (found) break;
+        }
+
+        if (!found) {
+          missing.push(col);
+        }
+      }
+
+      const needsConfirmation = missing.length > 0;
+      const res = needsConfirmation
+        ? window.confirm(
+            "This will add the following properties to the selected database:\n" +
+              missing
+                .map((col) => `- ${col.name[0]} (${col.type})`)
+                .join("\n") +
+              "\n\nDo you want to continue?",
+          )
+        : true;
+
+      if (res && needsConfirmation) {
+        await notion.dataSources.update({
+          data_source_id: selected,
+          properties: missing.reduce((acc, col) => {
+            acc[col.name[0]] = {
+              [col.type]: {},
+            };
+            return acc;
+          }, {} as any),
+        });
+      }
+
+      if (needsConfirmation && !res) {
+        submitting = false;
+        return;
+      }
+
+      next(selected);
     }
 
     submitting = false;

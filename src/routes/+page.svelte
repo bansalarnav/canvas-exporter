@@ -6,12 +6,14 @@
   import InputForm from "./InputForm.svelte";
   import Assignments, { type Event } from "./Assignments.svelte";
   import NotionMain from "./NotionMain.svelte";
+  import FinalStep from "./FinalStep.svelte";
 
   let currentStep: number = $state(1);
   let previousStep: number = $state(1);
   let icsText: string = $state("");
   let containerHeight: number = $state(422);
   let selectedAssignments: Record<string, Event[]> = $state({});
+  let selectedDatasourceId: string = $state("");
 
   function finishIcsImport(inp: string) {
     icsText = inp;
@@ -23,6 +25,12 @@
     selectedAssignments = inp;
     previousStep = currentStep;
     currentStep = 3;
+  }
+
+  function finishDatasourceSelect(inp: string) {
+    selectedDatasourceId = inp;
+    previousStep = currentStep;
+    currentStep = 4;
   }
 
   function back() {
@@ -88,7 +96,9 @@
           {:else if currentStep === 2}
             <Assignments {icsText} {back} next={finishAssignmentSelect} />
           {:else if currentStep === 3}
-            <NotionMain {selectedAssignments} />
+            <NotionMain {selectedAssignments} next={finishDatasourceSelect} />
+          {:else if currentStep === 4}
+            <FinalStep {selectedAssignments} {selectedDatasourceId} />
           {/if}
         </div>
       {/key}
